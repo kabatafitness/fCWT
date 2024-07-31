@@ -88,6 +88,25 @@ public:
     float *mother;
 };
 
+/*
+    Best explanation is here: https://www.sci.utah.edu/~gerig/CS7960-S2010/handouts/04%20Gaussian%20derivatives.pdf
+*/
+class Gaus : public Wavelet {
+    public:
+    FCWT_LIBRARY_API Gaus(float bandwidth, int degree); //frequency domain
+    ~Gaus() { free(mother); };
+    
+    void generate(int size); //frequency domain
+    void generate(float* real, float* imag, int size, float scale); //time domain
+    int getSupport(float scale) { return (int)(fb*scale*3.0f); };
+    void getWavelet(float scale, complex<float>* pwav, int pn);
+    float fb;
+    
+private:
+    float ifb, fb2;    
+    int degree;
+};
+
 class Morlet : public Wavelet {
 public:
     FCWT_LIBRARY_API Morlet(float bandwidth); //frequency domain

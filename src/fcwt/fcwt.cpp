@@ -38,6 +38,117 @@ limitations under the License.
 
 #include "fcwt.h"
 
+/*
+    Hermite Polynomial calculation for fast Gaussian Derivatives, 
+    We can use recursive formula but since we will not use higher than 
+    degree 8 or 10 we will simply hardcode it
+*/
+inline float HermitePoly(float x, int n)
+{
+    switch (n)
+    {
+    case 0/* constant-expression */:
+        return 1;
+    case 1:
+        return 2.0f*x;
+    case 2:
+        return 4.0f*x*x - 2;
+    case 3:
+        return 8.0f*x*x*x - 12.0f*x;
+    case 4:
+        return 16.0f*x*x*x*x - 48.0f*x*x + 12;
+    case 5:
+        return 32.0f*x*x*x*x*x - 160.0f*x*x*x + 120.0f*x;
+    case 6:
+        return 64.0f*x*x*x*x*x*x - 480.0f*x*x*x*x + 720.0*x*x - 120;
+    case 7:
+        return 128.0f*x*x*x*x*x*x*x - 1344.0f*x*x*x*x*x + 3360.0f*x*x*x - 1680.0f*x;
+    case 8:
+        return 256.0f*x*x*x*x*x*x*x*x - 3584.0f*x*x*x*x*x*x + 13440.0f*x*x*x*x - 13440.0f*x*x + 1680.0f;
+    default:
+        return 0;
+        break;
+    }
+}
+
+Gaus::Gaus(float bandwidth, int degree) {
+    four_wavelen = 0.9876f;
+    fb = bandwidth;
+    fb2 = 2*fb*fb;
+    ifb = 1.0f/fb;
+    //In general F(d^n G(x,sig) / dx^n) is (-i*w)^n F( G(x,sig) )
+    //So for first order we will have a -i*w for second w^2 for third -i*w^3 ect....
+    if(degree%2==1)
+        imag_frequency = true;
+    else
+        imag_frequency = false;
+    doublesided = false;
+    this->degree = degree;
+}
+
+void Gaus::generate(int size) {
+    //Frequency domain, because we only need size. Default scale is always 2;
+    width = size;
+    
+    float tmp1;
+    float toradians = (2*PI)/(float)size;
+    float norm = -1/sqrt(2*PI);
+    
+    mother = (float*)malloc(sizeof(float)*width);
+    
+    //calculate array
+    for(int w = 0; w < width; w++) {
+        tmp1 = -(w*w*fb*fb)/2;
+        mother[w] = (norm*exp(tmp1));
+    }
+}
+
+void Gaus::generate(float* real, float* imag, int size, float scale) {
+    //Time domain because we know size from scale
+    float tmp1, tmp2;
+    width = getSupport(scale);
+    // Gaussian function and its derivatives 
+    // d^n G(x,sig) / dx^n = (-1)^n * 1/(sig*sqrt(2))^n H(x/(sig*sqrt(2)),n) G(x,sig)
+    // Where H(a,n) is the nth degree physics Hermite Polynomial
+
+    float neg = -1;
+    if(this->degree%2==0)
+        neg = 1;
+
+    float norm = neg/(pow(fb,degree)*pow(2,degree/2));
+
+    for(int t=0; t < width*2+1; t++) {
+        tmp1 = (float)(t - width)/scale;
+        tmp2 = 1/sqrt(2*PI)*exp(-(tmp1*tmp1)/(fb2));
+        tmp1 = HermitePoly(tmp1,degree);
+        
+        real[t] = norm*HermitePoly(tmp1,degree)*tmp2;
+    }
+    //cout << "]" << endl;
+}
+
+void Gaus::getWavelet(float scale, complex<float>* pwav, int pn) {
+    int w = getSupport(scale);
+
+    float *real = (float*)malloc(sizeof(float)*max(w*2+1,pn));
+    float *imag = (float*)malloc(sizeof(float)*max(w*2+1,pn));
+    for(int t=0; t < max(w*2+1,pn); t++) {
+        real[t] = 0;
+        imag[t] = 0;
+    }
+
+    generate(real,imag,pn,scale);
+
+    for(int t=0; t < pn; t++) {
+        pwav[t].real(real[t]);
+        pwav[t].imag(imag[t]);
+    }
+	
+	delete real;
+	delete imag;
+};
+
+
 Morlet::Morlet(float bandwidth) {
     four_wavelen = 0.9876f;
     fb = bandwidth;
@@ -45,8 +156,7 @@ Morlet::Morlet(float bandwidth) {
     ifb = 1.0f/fb;
     imag_frequency = false;
     doublesided = false;
-    mother = NULL;
-}
+ }
 
 void Morlet::generate(int size) {
     //Frequency domain, because we only need size. Default scale is always 2;
