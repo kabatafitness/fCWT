@@ -48,9 +48,10 @@ limitations under the License.
 */
 inline float HermitePoly(float x, int n)
 {
+    
     switch (n)
     {
-    case 0/* constant-expression */:
+    case 0:
         return 1.0f;
     case 1:
         return 2.0f*x;
@@ -72,6 +73,54 @@ inline float HermitePoly(float x, int n)
         return 0;
         break;
     }
+    
+}
+
+inline float HermitePolyFast(float x, int n)
+{
+    float psi;
+    float X2 = x*x;
+    switch (n) {
+        case 1:
+            psi = -2.0f * x ;
+            break;
+        
+        case 2:
+            psi = 2.0f / std::sqrt(3.0f) * (-1.0f + 2.0f * X2) ;
+            break;
+        
+        case 3:
+            psi = 4.0f / std::sqrt(15.0f) * x * (3.0f - 2.0f * X2) ;
+            break;
+        
+        case 4:
+            psi = 4.0f / std::sqrt(105.0f) * (3.0f - 12.0f * X2 + 4.0f * X2 * X2) ;
+            break;
+        
+        case 5:
+            psi = 8.0f / (3.0f * std::sqrt(105.0f)) * x * (-15.0f + 20.0f * X2 - 4.0f * X2 * X2) ;
+            break;
+        
+        case 6:
+            psi = 8.0f / (3.0f * std::sqrt(1155.0f)) * (-15.0f + 90.0f * X2 - 60.0f * X2 * X2 + 8.0f * X2 * X2 * X2) ;
+            break;
+        
+        case 7:
+            psi = 16.0f / (3.0f * std::sqrt(15015.0f)) * x * (105.0f - 210.0f * X2 + 84.0f * X2 * X2 - 8.0f * X2 * X2 * X2) ;
+            break;
+        
+        case 8:
+            psi = 16.0f / (45.0f * std::sqrt(1001.0f)) * (105.0f - 840.0f * X2 + 840.0f * X2 * X2 - 224.0f * X2 * X2 * X2 + 16.0f * X2 * X2 * X2 * X2) ;
+            break;
+        
+        default:
+            psi = 0;
+    }
+
+    if(n%4 == 2 || n%4 == 3)
+        psi = -psi;
+
+    return psi;
 }
 
 Gaus::Gaus(float bandwidth, int degree) {
@@ -125,7 +174,8 @@ void Gaus::generate(float* real, float* imag, int size, float scale) {
         tmp1 = (float)(t - width)/scale;
         tmp2 = exp(-(tmp1*tmp1)/(fb2));
         
-        real[t] = norm*HermitePoly(tmp1/(fb*sqrt(2.0f)),degree)*tmp2/scale;
+        real[t] = norm*HermitePoly(tmp1/(fb*sqrt(2.0f)),degree)*tmp2;
+        //real[t] = norm*HermitePolyFast(tmp1/(fb*sqrt(2.0f)),degree)*tmp2;
     }
     //cout << "]" << endl;
 }

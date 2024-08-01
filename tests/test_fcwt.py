@@ -1,5 +1,6 @@
-from fcwt import *
 import os
+os.add_dll_directory("C:/Kabata/fCWT/libs")
+from fcwt import *
 import numpy as np
 import matplotlib.pyplot as plt
 #import timeit
