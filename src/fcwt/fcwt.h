@@ -31,6 +31,7 @@ limitations under the License.
   #endif
 #else /* Unix */
   #define FCWT_LIBRARY_API
+
 #endif
 
 #include <stdio.h>
@@ -98,7 +99,7 @@ class Gaus : public Wavelet {
     
     void generate(int size); //frequency domain
     void generate(float* real, float* imag, int size, float scale); //time domain
-    int getSupport(float scale) { return (int)(fb*scale*3.0f); };
+    int getSupport(float scale) { return (int)(fb*scale*5.0f); };
     void getWavelet(float scale, complex<float>* pwav, int pn);
     float fb;
     

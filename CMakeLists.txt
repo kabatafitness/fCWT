@@ -61,6 +61,7 @@ endif()
 #set cmake linker flags
 link_libraries("-lm")
 
+
 link_directories(${PROJECT_SOURCE_DIR})
 
 set(libraryheaders 
@@ -103,6 +104,12 @@ else()
     message("Building of static library is enabled.")
 endif()
 
+include_directories("${PROJECT_SOURCE_DIR}/libs")
+include_directories("/usr/local/include")
+include_directories("${PROJECT_SOURCE_DIR}/src/MEX")
+link_directories("${PROJECT_SOURCE_DIR}/libs")
+link_directories("/usr/local/lib")
+
 add_library(${fcwt_library_target} ${libraryheaders} ${librarysources})
 
 set_target_properties(${fcwt_library_target}
@@ -117,11 +124,7 @@ if(BUILD_BENCHMARK)
 endif()
 
 add_executable(fCWT_example ${headers} ${sources})
-include_directories("${PROJECT_SOURCE_DIR}/libs")
-include_directories("/usr/local/include")
-include_directories("${PROJECT_SOURCE_DIR}/src/MEX")
-link_directories("${PROJECT_SOURCE_DIR}/libs")
-link_directories("/usr/local/lib")
+
 
 if(APPLE)
     set(OpenMP_INCLUDES "/usr/local/opt/libomp/include")

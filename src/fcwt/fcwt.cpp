@@ -37,6 +37,9 @@ limitations under the License.
 */
 
 #include "fcwt.h"
+#include <stdio.h>
+#include <iostream>
+
 
 /*
     Hermite Polynomial calculation for fast Gaussian Derivatives, 
@@ -48,19 +51,19 @@ inline float HermitePoly(float x, int n)
     switch (n)
     {
     case 0/* constant-expression */:
-        return 1;
+        return 1.0f;
     case 1:
         return 2.0f*x;
     case 2:
-        return 4.0f*x*x - 2;
+        return 4.0f*x*x - 2.0f;
     case 3:
         return 8.0f*x*x*x - 12.0f*x;
     case 4:
-        return 16.0f*x*x*x*x - 48.0f*x*x + 12;
+        return 16.0f*x*x*x*x - 48.0f*x*x + 12.0f;
     case 5:
         return 32.0f*x*x*x*x*x - 160.0f*x*x*x + 120.0f*x;
     case 6:
-        return 64.0f*x*x*x*x*x*x - 480.0f*x*x*x*x + 720.0*x*x - 120;
+        return 64.0f*x*x*x*x*x*x - 480.0f*x*x*x*x + 720.0*x*x - 120.0f;
     case 7:
         return 128.0f*x*x*x*x*x*x*x - 1344.0f*x*x*x*x*x + 3360.0f*x*x*x - 1680.0f*x;
     case 8:
@@ -98,8 +101,8 @@ void Gaus::generate(int size) {
     
     //calculate array
     for(int w = 0; w < width; w++) {
-        tmp1 = -(w*w*fb*fb)/2;
-        mother[w] = (norm*exp(tmp1));
+        tmp1 = w*toradians*fb;
+        mother[w] = (norm*exp(-tmp1*tmp1/2.0f)*pow(w*toradians,this->degree));
     }
 }
 
@@ -111,18 +114,18 @@ void Gaus::generate(float* real, float* imag, int size, float scale) {
     // d^n G(x,sig) / dx^n = (-1)^n * 1/(sig*sqrt(2))^n H(x/(sig*sqrt(2)),n) G(x,sig)
     // Where H(a,n) is the nth degree physics Hermite Polynomial
 
-    float neg = -1;
+    float neg = -1.0f;
     if(this->degree%2==0)
-        neg = 1;
+        neg = 1.0f;
 
-    float norm = neg/(pow(fb,degree)*pow(2,degree/2));
+    std::cout << "generate size: " << size << " scale: " << scale << std::endl;
+    float norm = neg/(pow(fb,degree)*pow(2.0,((double)degree)/2.0)) * 1.0f/(fb*sqrt(2*PI));
 
     for(int t=0; t < width*2+1; t++) {
         tmp1 = (float)(t - width)/scale;
-        tmp2 = 1/sqrt(2*PI)*exp(-(tmp1*tmp1)/(fb2));
-        tmp1 = HermitePoly(tmp1,degree);
+        tmp2 = exp(-(tmp1*tmp1)/(fb2));
         
-        real[t] = norm*HermitePoly(tmp1,degree)*tmp2;
+        real[t] = norm*HermitePoly(tmp1/(fb*sqrt(2.0f)),degree)*tmp2/scale;
     }
     //cout << "]" << endl;
 }
@@ -137,6 +140,7 @@ void Gaus::getWavelet(float scale, complex<float>* pwav, int pn) {
         imag[t] = 0;
     }
 
+    std::cout << "Generating, pn: " << pn << "scale: " << scale << std::endl;
     generate(real,imag,pn,scale);
 
     for(int t=0; t < pn; t++) {
