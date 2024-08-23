@@ -19,11 +19,14 @@ sup = gaus.getSupport(10.0)
 wavelet = np.zeros(sup*2+1,dtype='csingle')
 gaus.getWavelet(10.0,wavelet)
 
+waveletFT = np.zeros(sup*2+1,dtype='csingle')
+gaus.getWaveletFT(10.0,waveletFT)
+
 #%% Generate data
 fs = 50     #Sampling frequency
 n = 1024
 x = np.arange(n)
-y = np.sin(2*np.pi*x/200, dtype='float32')
+y = np.sin(2*np.pi*x/20, dtype='float32')+np.sin(2*np.pi*x/50, dtype='float32')
 hz = 5
 
 f0 = 0.01   #Min frequency
@@ -61,7 +64,7 @@ print(np.linalg.norm(scales_np-scales_test))
 
 #%%
 scales.getFrequencies(freqs)
-fcwt = FCWT(gaus, fs, False, False)
+fcwt = FCWT(gaus, fs, False, True)
 
 import time
 start = time.time()
@@ -74,15 +77,15 @@ print(end - start)
 # Our spacing between scales is delta_p
 # Our time difference is 1/fs
 dt = 1/fs
-tmp
+
 reconstruction = ( np.sqrt(dt) * delta_p * 
-                  np.transpose(np.sum(np.transpose(np.real(out))/ (scales_np ** 0.5), axis=-1)).transpose())
-reconstruction = reconstruction * (1 / ( 3.5987 * 0.9484))
+                  np.transpose(np.sum(np.transpose(np.real(out)), axis=-1)).transpose())
+reconstruction = reconstruction * (1 / ( 3.5987 * 0.948 *4.5))
 
 plt.figure(1)
 plt.clf()
 plt.plot(y,color='b')
-plt.plot(reconstruction,color = 'r')
+plt.plot(reconstruction*100,color = 'r')
 
 #%% Now apply cwt using a different library 
 import pywt

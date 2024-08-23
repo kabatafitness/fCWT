@@ -100,6 +100,9 @@ class Gaus(Wavelet):
 
     def getWavelet(self, scale, pwav):
         return _fcwt.Gaus_getWavelet(self, scale, pwav)
+
+    def getWaveletFT(self, scale, pwav):
+        return _fcwt.Gaus_getWaveletFT(self, scale, pwav)
     fb = property(_fcwt.Gaus_fb_get, _fcwt.Gaus_fb_set)
     __swig_destroy__ = _fcwt.delete_Gaus
 
