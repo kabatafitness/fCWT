@@ -82,6 +82,7 @@ public:
     virtual void generate(int size) { printf("ERROR [generate freq]: Override this virtual class"); };
     virtual int getSupport(float scale) { printf("ERROR [getsupport]: Override this virtual class"); return 0; };
     virtual void getWavelet(float scale, complex<float>* pwav, int pn) { printf("ERROR [getsupport]: Override this virtual class"); };
+    virtual void getWaveletFT(float scale, complex<float>* pwav, int pn) { printf("ERROR [getsupport]: Override this virtual class"); };
     
     int width;
     float four_wavelen;
@@ -101,6 +102,7 @@ class Gaus : public Wavelet {
     void generate(float* real, float* imag, int size, float scale); //time domain
     int getSupport(float scale) { return (int)(fb*scale*5.0f); };
     void getWavelet(float scale, complex<float>* pwav, int pn);
+    void getWaveletFT(float scale, complex<float>* pwav, int pn);
     float fb;
     
 private:

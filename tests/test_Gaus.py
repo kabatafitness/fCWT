@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 #%%
-gaus = Morlet(2)
+gaus = Gaus(1,2)
 sup = gaus.getSupport(10.0)
 
 wavelet = np.zeros(sup*2+1,dtype='csingle')
@@ -23,7 +23,7 @@ gaus.getWavelet(10.0,wavelet)
 fs = 50     #Sampling frequency
 n = 1024
 x = np.arange(n)
-y = np.sin(2*np.pi*x/20, dtype='float32')
+y = np.sin(2*np.pi*x/200, dtype='float32')
 hz = 5
 
 f0 = 0.01   #Min frequency
@@ -74,10 +74,10 @@ print(end - start)
 # Our spacing between scales is delta_p
 # Our time difference is 1/fs
 dt = 1/fs
-
+tmp
 reconstruction = ( np.sqrt(dt) * delta_p * 
                   np.transpose(np.sum(np.transpose(np.real(out))/ (scales_np ** 0.5), axis=-1)).transpose())
-reconstruction = reconstruction * (1 / ( 0.7511 * 0.9484))
+reconstruction = reconstruction * (1 / ( 3.5987 * 0.9484))
 
 plt.figure(1)
 plt.clf()

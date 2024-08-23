@@ -55,6 +55,7 @@ public:
     void generate(float* real, float* imag, int size, float scale); //time domain
     int getSupport(float scale) { return (int)(fb*scale*3.0f); };
     void getWavelet(float scale, complex<float>* pwav, int pn);
+    void getWaveletFT(float scale, complex<float>* pwav, int pn);
     float fb;
 };
 

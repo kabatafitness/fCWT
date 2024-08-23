@@ -134,7 +134,7 @@ Gaus::Gaus(float bandwidth, int degree) {
         imag_frequency = true;
     else
         imag_frequency = false;
-    doublesided = false;
+    doublesided = true;
     this->degree = degree;
 }
 
@@ -144,14 +144,17 @@ void Gaus::generate(int size) {
     
     float tmp1;
     float toradians = (2*PI)/(float)size;
-    float norm = -1/sqrt(2*PI);
     
     mother = (float*)malloc(sizeof(float)*width);
     
+    //Matlab implementation with gamma function G(1/2+degree)
+    //-(i^m/sqrt(gamma(m+0.5)))(k^m)exp(-k^2/2)
+    float neg = (degree%2 == 0) ? -1 : 1;
+    float norm = -(neg / tgammaf(0.5f + (float)degree ));
     //calculate array
     for(int w = 0; w < width; w++) {
         tmp1 = w*toradians*fb;
-        mother[w] = (norm*exp(-tmp1*tmp1/2.0f)*pow(w*toradians,this->degree));
+        mother[w] = (norm*exp(-tmp1*tmp1/2.0f)*pow(w*toradians,(float)this->degree));
     }
 }
 
@@ -167,7 +170,7 @@ void Gaus::generate(float* real, float* imag, int size, float scale) {
     if(this->degree%2==0)
         neg = 1.0f;
 
-    std::cout << "generate size: " << size << " scale: " << scale << std::endl;
+    //std::cout << "generate size: " << size << " scale: " << scale << std::endl;
     float norm = neg/(pow(fb,degree)*pow(2.0,((double)degree)/2.0)) * 1.0f/(fb*sqrt(2*PI));
 
     for(int t=0; t < width*2+1; t++) {
@@ -190,7 +193,7 @@ void Gaus::getWavelet(float scale, complex<float>* pwav, int pn) {
         imag[t] = 0;
     }
 
-    std::cout << "Generating, pn: " << pn << "scale: " << scale << std::endl;
+    //std::cout << "Generating, pn: " << pn << "scale: " << scale << std::endl;
     generate(real,imag,pn,scale);
 
     for(int t=0; t < pn; t++) {
@@ -201,6 +204,21 @@ void Gaus::getWavelet(float scale, complex<float>* pwav, int pn) {
 	delete real;
 	delete imag;
 };
+
+void Gaus::getWaveletFT(float scale, complex<float>* pwav, int pn) {
+    int w = getSupport(scale);
+
+    //std::cout << "Generating, pn: " << pn << "scale: " << scale << std::endl;
+    generate(pn);
+
+    for(int t=0; t < pn; t++) {
+        pwav[t].real(mother[t]);
+        pwav[t].imag(0);
+    }
+	
+};
+
+
 
 
 Morlet::Morlet(float bandwidth) {
