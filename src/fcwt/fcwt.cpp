@@ -149,13 +149,24 @@ void Gaus::generate(int size) {
     
     //Matlab implementation with gamma function G(1/2+degree)
     //-(i^m/sqrt(gamma(m+0.5)))(k^m)exp(-k^2/2)
+    //Ok actually reading C Torrence 1998 this makes a lot more sense now
+
     float neg = (degree%2 == 0) ? -1 : 1;
-    float norm = -(neg / tgammaf(0.5f + (float)degree ));
+    float norm = -(neg / sqrt(tgammaf(0.5f + (float)degree )));
     //calculate array
     for(int w = 0; w < width; w++) {
         tmp1 = w*toradians*fb;
-        mother[w] = (norm*exp(-tmp1*tmp1/2.0f)*pow(w*toradians,(float)this->degree));
+        mother[w] = (norm*exp(-4.0f*tmp1*tmp1/2.0f)*pow(2.0f*w*toradians*fb,(float)this->degree));
     }
+}
+
+//Normalization factor so the wavelet function at each scale has unit energy
+//Note, the default scale used by fCWT is 2. 
+//Using position we get the current mother
+float Gaus::normalizationFactor(float scale, int position)
+{
+    float m = (float)this->degree;
+
 }
 
 void Gaus::generate(float* real, float* imag, int size, float scale) {

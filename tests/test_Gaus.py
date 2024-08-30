@@ -11,6 +11,7 @@ from fcwt import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+%matplotlib qt
 
 #%%
 gaus = Gaus(1,2)
@@ -24,12 +25,28 @@ gaus.getWaveletFT(10.0,waveletFT)
 
 #%% Generate data
 fs = 50     #Sampling frequency
-n = 1024
-x = np.arange(n)
-y = np.sin(2*np.pi*x/20, dtype='float32')+np.sin(2*np.pi*x/50, dtype='float32')
+n = 2024
+x = np.arange(n)/100
+
+# The signal will be random sum of sinusoids frequencies from 0.5Hz to 5Hz
+# We will also add a bias term 
+
+freqs = np.linspace(0.5, 2, 100)*2*np.pi #Frequencies in radians
+f_sigma = 1;
+amps = np.random.randn(freqs.size)*f_sigma
+
+signal = np.zeros(n)
+for i in range(freqs.size):
+    signal = signal + amps[i]*np.sin(x*freqs[i])
+
+bias = 2
+slope = 0.5
+signal = signal + bias + x*slope
+
+y = np.array(signal, dtype='float32')
 hz = 5
 
-f0 = 0.01   #Min frequency
+f0 = 0.5   #Min frequency
 f1 = 25    #Max frequency
 fn = 50     #Number of frequencies
 
@@ -79,45 +96,14 @@ print(end - start)
 dt = 1/fs
 
 reconstruction = ( np.sqrt(dt) * delta_p * 
-                  np.transpose(np.sum(np.transpose(np.real(out)), axis=-1)).transpose())
-reconstruction = reconstruction * (1 / ( 3.5987 * 0.948 *4.5))
+                  np.sum(np.transpose(np.real(out)), axis=-1))
+reconstruction = reconstruction * 20.5178 * (1 / ( 3.5987 * 0.867))
+
+#reconstruction2 = np.sqrt(dt) * delta_p *np.sqrt(np.pi*2*scales_np/dt) @np.real(out) * (1 / ( 3.5987 * 0.867))
+
 
 plt.figure(1)
 plt.clf()
 plt.plot(y,color='b')
-plt.plot(reconstruction*100,color = 'r')
-
-#%% Now apply cwt using a different library 
-import pywt
-import numpy as np
-import matplotlib.pyplot as plt
-
-
-pywt_scales = np.array(pywt.frequency2scale('gaus1', np.double(freqs)))
-pywt_scales = pywt_scales[np.where(pywt_scales > 0.1)[0]]
-coef, pywt_freqs=pywt.cwt(y,pywt_scales,'gaus1')
-# using the variable axs for multiple Axes
-fig, axs = plt.subplots(2, 1)
-
-axs[0].matshow(np.real(out))
-axs[1].matshow(np.real(coef))
-
-#%%
-import matplotlib.pyplot as plt
-import numpy as np
-
-import pywt
-
-# plot complex morlet wavelets with different center frequencies and bandwidths
-wavelets = [f"gaus{x:d}" for x in [2, 4, 6, 8]]
-fig, axs = plt.subplots(3, 3, figsize=(10, 10), sharex=True, sharey=True)
-for ax, wavelet_name in zip(axs.flatten(), wavelets):
-    [psi, x] = pywt.ContinuousWavelet(wavelet_name).wavefun(10)
-    ax.plot(x, np.real(psi), label="real")
-    ax.plot(x, np.imag(psi), label="imag")
-    ax.set_title(wavelet_name)
-    ax.set_xlim([-5, 5])
-    ax.set_ylim([-0.8, 1])
-ax.legend()
-plt.suptitle("Complex Morlet Wavelets with different center frequencies and bandwidths")
-plt.show()
+plt.plot(reconstruction,color = 'r')
+plt.plot(y-bias-x*slope,color='g')
